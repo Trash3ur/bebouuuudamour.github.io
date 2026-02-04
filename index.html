@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Question 🌹</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- CORE SETTINGS (Original Dark Mode) --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            /* Original Gradient */
+            background: linear-gradient(135deg, #1a0a0a 0%, #2d1f1f 50%, #1a0a0a 100%);
+            overflow: hidden;
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* --- ROSE FIELD --- */
+        .rose-field {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Smooth Intro Animation */
+            animation: growIn 2.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+            transform-origin: center center;
+        }
+
+        @keyframes growIn {
+            0% { transform: scale(0) translateY(100px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        /* Background Roses */
+        .background-roses {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            opacity: 0.3;
+            animation: fadeOutField 4s ease-in-out forwards;
+            pointer-events: none;
+        }
+        @keyframes fadeOutField { 0% { opacity: 0.4; } 100% { opacity: 0.1; } }
+
+        .bg-rose {
+            position: absolute;
+            font-size: 2rem;
+            color: #ff6b6b;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        /* --- ROSE CONTAINER --- */
+        .rose-container {
+            position: relative;
+            width: 300px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* SVG Container */
+        .rose-svg-container {
+            width: 250px;
+            height: 400px;
+            position: relative;
+            z-index: 10;
+            transition: opacity 0.5s;
+        }
+
+        .rose-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        }
+
+        .petal-path {
+            stroke: #9b1b30;
+            stroke-width: 1;
+            cursor: default;
+            transition: fill 0.3s ease;
+            transform-box: fill-box;
+            transform-origin: bottom center;
+        }
+
+        /* --- INTERACTIVE PETALS (Fixes) --- */
+        .interactive-petal {
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: 100px 180px; /* Pivots exactly on the stem */
+        }
+
+        /* NEW: Hover Glow Effect */
+        .interactive-petal:hover {
+            filter: drop-shadow(0 0 15px rgba(255, 100, 100, 0.8)) drop-shadow(0 0 25px rgba(255, 150, 150, 0.5));
+        }
+        
+        /* Ensure text catches mouse events too if needed, but usually we let path handle it */
+        .petal-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: 24px;
+            fill: white;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none; 
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+            user-select: none;
+            transition: opacity 0.5s ease;
+        }
+
+        /* Falling Animation */
+        .falling { animation: fallAway 2s ease-in-out forwards; }
+        @keyframes fallAway {
+            0% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(400px) rotate(360deg) translateX(150px); }
+        }
+
+        /* Swirl Animation */
+        .swirling { animation: swirl 0.6s ease-in-out; }
+        @keyframes swirl {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(180deg) scale(0.8); }
+            50% { transform: rotate(360deg) scale(0.9); }
+            75% { transform: rotate(540deg) scale(0.85); }
+            100% { transform: rotate(720deg) scale(1); }
+        }
+
+        /* Question Text */
+        .question {
+            position: absolute;
+            top: -60px;
+            width: 400px;
+            text-align: center;
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.8rem;
+            color: #ffb6c1;
+            text-shadow: 0 0 20px rgba(255, 182, 193, 0.8);
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 20;
+        }
+        .question.visible { opacity: 1; }
+
+        /* --- ORIGINAL ROCKET STYLES --- */
+        .rose-container.rocket-mode .rose-svg-container {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .rose-container.rocket-mode .question { opacity: 0; }
+        
+        /* Hide the halo in rocket mode */
+        .rose-container.rocket-mode::before { opacity: 0; }
+
+        .rose-container.pre-launch { animation: preLaunchVibrate 0.1s linear infinite; }
+        @keyframes preLaunchVibrate {
+            0%, 100% { transform: translateX(-2px) translateY(0); }
+            50% { transform: translateX(2px) translateY(1px); }
+        }
+
+        .rose-container.takeoff { animation: rocketTakeoff 2.5s ease-in forwards; }
+        @keyframes rocketTakeoff {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-150vh); }
+        }
+
+        /* Rocket wrapper to keep rocket + flames together */
+        .actual-rocket {
+            position: absolute;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .rocket-mode .actual-rocket { 
+            display: flex; 
+            opacity: 1;
+        }
+
+        .rocket-body {
+            width: 60px; height: 120px;
+            background: linear-gradient(to right, #e8e8e8 0%, #ffffff 30%, #f0f0f0 70%, #c0c0c0 100%);
+            border-radius: 30px 30px 10px 10px;
+            position: relative;
+            box-shadow: inset -5px 0 15px rgba(0,0,0,0.2), 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .rocket-tip {
+            width: 0; height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 50px solid #ff4757;
+            position: absolute; top: -45px; left: 0;
+        }
+        .rocket-window {
+            width: 25px; height: 25px;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            border-radius: 50%;
+            position: absolute; top: 25px; left: 50%;
+            transform: translateX(-50%);
+            border: 3px solid #636e72;
+        }
+        .rocket-fin {
+            width: 0; height: 0;
+            border-top: 40px solid transparent;
+            border-bottom: 0 solid transparent;
+            position: absolute; bottom: 0;
+        }
+        .rocket-fin.left { border-right: 25px solid #c0392b; left: -20px; }
+        .rocket-fin.right { border-left: 25px solid #c0392b; right: -20px; }
+        .rocket-stripe { position: absolute; width: 100%; height: 15px; background: #ff4757; bottom: 30px; }
+        .rocket-heart {
+            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+            color: #ff6b8a; font-size: 1.2rem;
+        }
+
+        .rocket-flames {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: -5px;
+        }
+
+        .flame {
+            width: 0; height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 60px solid #ff6b00;
+            animation: flicker 0.1s ease-in-out infinite alternate;
+            filter: blur(2px);
+        }
+        .flame.inner { 
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 45px solid #ffcc00; 
+            position: absolute; 
+            top: 0; 
+            left: 50%;
+            transform: translateX(-50%);
+            filter: blur(1px); 
+        }
+        .flame.core { 
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 30px solid #fff; 
+            position: absolute; 
+            top: 0; 
+            left: 50%;
+            transform: translateX(-50%);
+            filter: blur(0); 
+        }
+        @keyframes flicker {
+            0% { transform: scaleY(1) scaleX(1); opacity: 1; }
+            100% { transform: scaleY(1.3) scaleX(0.9); opacity: 0.9; }
+        }
+        .flame.inner {
+            animation: flickerInner 0.1s ease-in-out infinite alternate;
+        }
+        @keyframes flickerInner {
+            0% { transform: translateX(-50%) scaleY(1) scaleX(1); opacity: 1; }
+            100% { transform: translateX(-50%) scaleY(1.25) scaleX(0.85); opacity: 0.95; }
+        }
+        .flame.core {
+            animation: flickerCore 0.1s ease-in-out infinite alternate;
+        }
+        @keyframes flickerCore {
+            0% { transform: translateX(-50%) scaleY(1) scaleX(1); opacity: 1; }
+            100% { transform: translateX(-50%) scaleY(1.2) scaleX(0.8); opacity: 1; }
+        }
+
+        .smoke-container {
+            position: relative;
+            margin-top: -20px;
+            pointer-events: none;
+            height: 50px;
+        }
+        .smoke {
+            position: absolute; width: 40px; height: 40px;
+            background: radial-gradient(circle, rgba(200,200,200,0.8) 0%, rgba(150,150,150,0.4) 50%, transparent 70%);
+            border-radius: 50%;
+            animation: smokeRise 1.5s ease-out infinite;
+        }
+        .smoke:nth-child(1) { left: -30px; animation-delay: 0s; }
+        .smoke:nth-child(2) { left: 0px; animation-delay: 0.2s; }
+        .smoke:nth-child(3) { left: 30px; animation-delay: 0.4s; }
+        @keyframes smokeRise {
+            0% { transform: translateY(0) scale(0.5); opacity: 0.9; }
+            100% { transform: translateY(100px) scale(2); opacity: 0; }
+        }
+
+        /* --- ENHANCED SPACE SCENE --- */
+        .space-scene {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, #000005 0%, #050520 30%, #0a0a2e 60%, #151545 100%);
+            display: none; z-index: 100; overflow: hidden;
+        }
+        .space-scene.active { display: block; animation: fadeInSpace 1s ease-in-out; }
+        @keyframes fadeInSpace { 0% { opacity: 0; } 100% { opacity: 1; } }
+
+        /* Stars */
+        .stars-container { position: absolute; width: 100%; height: 200%; top: 0; animation: starsMove 30s linear infinite; }
+        @keyframes starsMove { 0% { transform: translateY(-50%); } 100% { transform: translateY(0%); } }
+        .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 2s ease-in-out infinite alternate; }
+        .star.bright { box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.5); }
+        .star.blue { background: #a0d2ff; box-shadow: 0 0 4px 1px rgba(160, 210, 255, 0.5); }
+        .star.yellow { background: #fff5d0; box-shadow: 0 0 4px 1px rgba(255, 245, 208, 0.5); }
+        @keyframes twinkle { 0% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        /* Shooting Stars */
+        .shooting-star {
+            position: absolute;
+            width: 150px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), white);
+            border-radius: 50%;
+            animation: shoot 2s ease-out forwards;
+            opacity: 0;
+        }
+        .shooting-star::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 3px rgba(255,255,255,0.8);
+        }
+        @keyframes shoot {
+            0% { transform: translateX(0) translateY(0); opacity: 0; }
+            5% { opacity: 1; }
+            100% { transform: translateX(400px) translateY(250px); opacity: 0; }
+        }
+
+        /* Distant Planets */
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            animation: planetFloat 20s ease-in-out infinite;
+        }
+        .planet.mars {
+            width: 30px; height: 30px;
+            background: radial-gradient(circle at 30% 30%, #e07850, #b54a32, #8b3020);
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.5), 0 0 20px rgba(180, 80, 50, 0.3);
+            top: 15%; right: 10%;
+        }
+        .planet.jupiter {
+            width: 50px; height: 50px;
+            background: radial-gradient(circle at 35% 35%, #e8d5b5, #c9a96a, #a67c52);
+            box-shadow: inset -8px -8px 20px rgba(0,0,0,0.4), 0 0 25px rgba(200, 170, 100, 0.2);
+            top: 35%; left: 8%;
+        }
+        .planet.jupiter::after {
+            content: '';
+            position: absolute;
+            width: 100%; height: 4px;
+            background: linear-gradient(to right, transparent, rgba(180,140,90,0.6), transparent);
+            top: 45%; left: 0;
+            border-radius: 50%;
+        }
+        .planet.saturn {
+            width: 25px; height: 25px;
+            background: radial-gradient(circle at 30% 30%, #f5e6c8, #d4b896, #a89070);
+            box-shadow: inset -4px -4px 10px rgba(0,0,0,0.4), 0 0 15px rgba(200, 180, 140, 0.2);
+            top: 55%; right: 15%;
+        }
+        .saturn-ring {
+            position: absolute;
+            width: 50px; height: 15px;
+            border: 2px solid rgba(200, 180, 150, 0.5);
+            border-radius: 50%;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotateX(70deg);
+        }
+        @keyframes planetFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(15px); }
+        }
+
+        /* Nebulas / Galaxies */
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.15;
+            animation: nebulaPulse 15s ease-in-out infinite alternate;
+        }
+        .nebula.pink {
+            width: 300px; height: 200px;
+            background: radial-gradient(ellipse, rgba(255,100,150,0.6), rgba(200,50,100,0.3), transparent);
+            top: 5%; left: -5%;
+        }
+        .nebula.blue {
+            width: 250px; height: 250px;
+            background: radial-gradient(circle, rgba(100,150,255,0.5), rgba(50,80,200,0.2), transparent);
+            top: 60%; right: -5%;
+        }
+        .nebula.purple {
+            width: 200px; height: 150px;
+            background: radial-gradient(ellipse, rgba(150,100,200,0.5), rgba(100,50,150,0.2), transparent);
+            top: 25%; right: 25%;
+        }
+        @keyframes nebulaPulse {
+            0% { opacity: 0.1; transform: scale(1); }
+            100% { opacity: 0.2; transform: scale(1.1); }
+        }
+
+        /* Distant Galaxy */
+        .galaxy {
+            position: absolute;
+            width: 80px; height: 30px;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.3), rgba(200,180,255,0.15), transparent);
+            border-radius: 50%;
+            filter: blur(2px);
+            transform: rotate(-30deg);
+            animation: galaxySpin 60s linear infinite;
+        }
+        @keyframes galaxySpin {
+            0% { transform: rotate(-30deg); }
+            100% { transform: rotate(330deg); }
+        }
+
+        /* Constellations */
+        .constellation {
+            position: absolute;
+            opacity: 0.4;
+        }
+        .constellation-star {
+            position: absolute;
+            width: 4px; height: 4px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 4px 1px rgba(255,255,255,0.6);
+        }
+        .constellation-line {
+            position: absolute;
+            background: rgba(255,255,255,0.15);
+            height: 1px;
+            transform-origin: left center;
+        }
+
+        .space-rocket {
+            position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
+            animation: rocketWobble 0.5s ease-in-out infinite;
+        }
+        @keyframes rocketWobble {
+            0%, 100% { transform: translateX(-50%) rotate(-1deg) translateY(0); }
+            50% { transform: translateX(-50%) rotate(1deg) translateY(0); }
+        }
+        .space-rocket .rocket-body { transform: scale(0.9); }
+        .space-rocket .rocket-flames { display: flex; bottom: -60px; }
+
+        /* Make planets clickable with glow */
+        .planet {
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+            z-index: 50;
+        }
+        .planet.mars:hover {
+            transform: translateY(0) scale(1.3) !important;
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.5), 0 0 40px rgba(255, 100, 50, 0.8), 0 0 60px rgba(255, 50, 0, 0.5) !important;
+            filter: brightness(1.2);
+        }
+        .planet.jupiter:hover {
+            transform: translateY(0) scale(1.3) !important;
+            box-shadow: inset -8px -8px 20px rgba(0,0,0,0.4), 0 0 40px rgba(255, 200, 100, 0.8), 0 0 60px rgba(200, 150, 50, 0.5) !important;
+            filter: brightness(1.2);
+        }
+        .planet.saturn:hover {
+            transform: translateY(0) scale(1.3) !important;
+            box-shadow: inset -4px -4px 10px rgba(0,0,0,0.4), 0 0 40px rgba(245, 230, 200, 0.8), 0 0 60px rgba(200, 180, 140, 0.5) !important;
+            filter: brightness(1.2);
+        }
+
+        /* Easter egg overlay */
+        .easter-egg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+            cursor: pointer;
+        }
+        .easter-egg-overlay.active {
+            display: flex;
+        }
+        .easter-egg-overlay img {
+            max-width: 80%;
+            max-height: 70%;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 0 50px rgba(255, 100, 100, 0.5);
+        }
+        .easter-egg-overlay .easter-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem;
+            color: #ff6b8a;
+            text-shadow: 0 0 20px rgba(255, 107, 138, 0.8);
+            margin-top: 30px;
+            text-align: center;
+        }
+        .easter-egg-overlay .close-hint {
+            position: absolute;
+            bottom: 20px;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .love-message {
+            position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem; color: #ff6b8a;
+            text-shadow: 0 0 20px rgba(255, 107, 138, 0.8);
+            animation: loveMessagePulse 3s ease-in-out infinite;
+            text-align: center; white-space: nowrap;
+        }
+        @keyframes loveMessagePulse { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } }
+
+        .hearts-container { position: fixed; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .floating-heart {
+            position: absolute; color: rgba(255, 107, 107, 0.5);
+            animation: floatUp 8s ease-in-out infinite;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.6);
+        }
+        @keyframes floatUp { 
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; } 
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100px) rotate(20deg); opacity: 0; } 
+        }
+
+        /* Glowing halo around the rose */
+        .rose-container::before {
+            content: '';
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(255, 107, 107, 0.4) 0%, rgba(255, 107, 107, 0.15) 40%, transparent 70%);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -60%);
+            z-index: 0;
+            animation: pulseGlow 3s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes pulseGlow {
+            0% { opacity: 0.6; transform: translate(-50%, -60%) scale(1); }
+            100% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="hearts-container" id="heartsContainer"></div>
+
+    <div class="rose-field">
+        <div class="background-roses" id="bgRoses"></div>
+
+        <div class="rose-container" id="roseContainer">
+            <div class="question" id="question">Would you be my Valentine? 💕</div>
+            
+            <div class="rose-svg-container" id="roseSvgContainer">
+                <svg class="rose-svg" viewBox="0 0 200 350" id="roseSvg">
+                    <defs>
+                        <linearGradient id="petalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ff5c5c;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#c0392b;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="yesGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ff7675;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    
+                    <path class="stem-path" d="M100,180 Q100,250 100,350" fill="none" stroke="#228b22" stroke-width="8" stroke-linecap="round" />
+                    <path class="leaf-path" d="M100,240 Q130,220 150,230 Q130,250 100,240" fill="#228b22" />
+                    <path class="leaf-path" d="M100,280 Q70,260 50,270 Q70,290 100,280" fill="#228b22" />
+
+                    <g id="flowerHead">
+                        <!-- Yes/No petals at the back -->
+                        <g id="yesGroup" class="interactive-petal" style="pointer-events: none;">
+                            <path class="petal-path" fill="url(#yesGradient)" d="M100,180 C85,175 55,150 50,120 C45,90 65,75 85,85 C95,90 100,110 100,180" />
+                            <text x="70" y="125" class="petal-text" transform="rotate(-15 70 125)" style="opacity: 0;">Yes</text>
+                        </g>
+
+                        <g id="noGroup" class="interactive-petal" style="pointer-events: none;">
+                            <path class="petal-path" fill="url(#petalGradient)" d="M100,180 C115,175 145,150 150,120 C155,90 135,75 115,85 C105,90 100,110 100,180" />
+                            <text x="130" y="125" class="petal-text" transform="rotate(15 130 125)" style="opacity: 0;">No</text>
+                        </g>
+
+                        <!-- Outer petals on top (will fall) -->
+                        <path class="petal-path outer" id="p1" fill="url(#petalGradient)" d="M100,180 C70,180 50,130 80,100 C100,80 120,100 100,180" />
+                        <path class="petal-path outer" id="p2" fill="url(#petalGradient)" d="M100,180 C130,180 150,130 120,100 C100,80 80,100 100,180" />
+                        <path class="petal-path outer" id="p3" fill="url(#petalGradient)" d="M100,180 C60,160 60,100 100,80 C140,100 140,160 100,180" />
+                        <path class="petal-path outer" id="p4" fill="url(#petalGradient)" d="M90,170 C60,120 80,70 100,60 C120,70 140,120 110,170" />
+
+                        <circle id="roseCenter" cx="100" cy="180" r="0" fill="#800e13">
+                            <animate attributeName="r" from="0" to="15" dur="1s" fill="freeze" />
+                        </circle>
+                    </g>
+                </svg>
+            </div>
+            
+            <div class="actual-rocket">
+                <div class="rocket-body">
+                    <div class="rocket-tip"></div><div class="rocket-window"></div><div class="rocket-stripe"></div>
+                    <div class="rocket-fin left"></div><div class="rocket-fin right"></div><div class="rocket-heart">❤</div>
+                </div>
+                <div class="rocket-flames"><div class="flame"></div><div class="flame inner"></div><div class="flame core"></div></div>
+                <div class="smoke-container"><div class="smoke"></div><div class="smoke"></div><div class="smoke"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-scene" id="spaceScene">
+        <!-- Nebulas -->
+        <div class="nebula pink"></div>
+        <div class="nebula blue"></div>
+        <div class="nebula purple"></div>
+        
+        <!-- Distant Galaxy -->
+        <div class="galaxy" style="top: 20%; left: 15%;"></div>
+        <div class="galaxy" style="top: 70%; right: 20%; width: 60px; height: 25px;"></div>
+        
+        <!-- Planets -->
+        <div class="planet mars"></div>
+        <div class="planet jupiter"></div>
+        <div class="planet saturn">
+            <div class="saturn-ring"></div>
+        </div>
+        
+        <!-- Constellations -->
+        <div id="constellationsContainer"></div>
+        
+        <div class="stars-container" id="starsContainer"></div>
+        <div id="shootingStarsContainer"></div>
+        <div class="space-hearts" id="spaceHeartsContainer"></div>
+        <div class="love-message">Hihi ouf je suis HAPPYYYY I love you so much! 💕</div>
+        <div class="space-rocket" id="spaceRocket">
+            <div class="rocket-body"><div class="rocket-tip"></div><div class="rocket-window"></div><div class="rocket-stripe"></div><div class="rocket-fin left"></div><div class="rocket-fin right"></div><div class="rocket-heart">❤</div></div>
+            <div class="rocket-flames"><div class="flame"></div><div class="flame inner"></div><div class="flame core"></div></div>
+        </div>
+    </div>
+
+    <!-- Easter egg overlay -->
+    <div class="easter-egg-overlay" id="easterEggOverlay">
+        <img src="shit.jpg" alt="Surprise!">
+        <div class="easter-text">Il ne fallait pas cliquer là 😈</div>
+        <div class="close-hint">(Clique pour fermer)</div>
+    </div>
+
+    <script>
+        // Setup Backgrounds
+        function createBackgroundRoses() {
+            const container = document.getElementById('bgRoses');
+            const roseEmojis = ['🌹', '🥀', '🌷'];
+            for (let i = 0; i < 30; i++) {
+                const rose = document.createElement('span');
+                rose.className = 'bg-rose';
+                rose.textContent = roseEmojis[Math.floor(Math.random() * roseEmojis.length)];
+                rose.style.left = Math.random() * 100 + '%';
+                rose.style.top = Math.random() * 100 + '%';
+                rose.style.fontSize = (Math.random() * 2 + 1) + 'rem';
+                rose.style.opacity = Math.random() * 0.5 + 0.2;
+                container.appendChild(rose);
+            }
+        }
+        function createFloatingHearts() {
+            const container = document.getElementById('heartsContainer');
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('span');
+                heart.className = 'floating-heart';
+                heart.textContent = '❤';
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.fontSize = (Math.random() * 1.5 + 0.5) + 'rem';
+                heart.style.animationDelay = Math.random() * 6 + 's';
+                heart.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                container.appendChild(heart);
+            }
+        }
+
+        // Logic
+        function startPetalFalling() {
+            const petals = [document.getElementById('p4'), document.getElementById('p3'), document.getElementById('p2'), document.getElementById('p1')];
+            const question = document.getElementById('question');
+            
+            let delay = 0;
+            petals.forEach((petal, index) => {
+                setTimeout(() => {
+                    petal.classList.add('falling');
+                    if (index === 1) question.classList.add('visible');
+                    
+                    if (index === petals.length - 1) {
+                        setTimeout(() => {
+                            document.getElementById('roseCenter').style.opacity = '0';
+                            const yesGroup = document.getElementById('yesGroup');
+                            const noGroup = document.getElementById('noGroup');
+                            // Reveal the text on the petals
+                            yesGroup.querySelector('text').style.opacity = '1';
+                            noGroup.querySelector('text').style.opacity = '1';
+                            // Enable pointer events
+                            yesGroup.style.pointerEvents = 'auto';
+                            noGroup.style.pointerEvents = 'auto';
+                        }, 500);
+                    }
+                }, delay);
+                delay += 1000;
+            });
+        }
+
+        let isSwirling = false;
+        function handleNoApproach(e) {
+            if (isSwirling) return;
+
+            // Find which group currently holds the "No" text
+            const yesGroup = document.getElementById('yesGroup');
+            const noGroup = document.getElementById('noGroup');
+            
+            let activeNoGroup = noGroup;
+            if (noGroup.querySelector('text').textContent.trim() === 'Yes') {
+                activeNoGroup = yesGroup;
+            }
+
+            // Calculate distance to that specific group
+            const rect = activeNoGroup.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const distance = Math.sqrt(Math.pow(e.clientX - centerX, 2) + Math.pow(e.clientY - centerY, 2));
+
+            if (distance < 35) {
+                isSwirling = true;
+                const roseContainer = document.getElementById('roseSvgContainer');
+                roseContainer.classList.add('swirling');
+                
+                setTimeout(() => {
+                    // Swap Texts
+                    const yesText = yesGroup.querySelector('text');
+                    const noText = noGroup.querySelector('text');
+                    const tempT = yesText.textContent;
+                    yesText.textContent = noText.textContent;
+                    noText.textContent = tempT;
+
+                    // Swap Colors
+                    const yesPath = yesGroup.querySelector('path');
+                    const noPath = noGroup.querySelector('path');
+                    const yesFill = yesPath.getAttribute('fill');
+                    const noFill = noPath.getAttribute('fill');
+                    yesPath.setAttribute('fill', noFill);
+                    noPath.setAttribute('fill', yesFill);
+
+                    roseContainer.classList.remove('swirling');
+                    isSwirling = false;
+                }, 300);
+            }
+        }
+
+        function handleYesClick() {
+            const roseContainer = document.getElementById('roseContainer');
+            const roseField = document.querySelector('.rose-field');
+            
+            roseContainer.classList.add('pre-launch');
+            setTimeout(() => {
+                roseContainer.classList.remove('pre-launch');
+                roseContainer.classList.add('rocket-mode');
+                roseContainer.classList.add('pre-launch');
+                setTimeout(() => {
+                    roseContainer.classList.remove('pre-launch');
+                    roseContainer.classList.add('takeoff');
+                    setTimeout(() => {
+                        roseField.style.display = 'none';
+                        const spaceScene = document.getElementById('spaceScene');
+                        createStars();
+                        createConstellations();
+                        setInterval(createShootingStars, 2500);
+                        createShootingStars(); // Initial one
+                        createSpaceHearts();
+                        spaceScene.classList.add('active');
+                        
+                        // Attach planet listeners after space scene is active
+                        setTimeout(() => {
+                            // Mars shows the image easter egg
+                            document.querySelector('.planet.mars').addEventListener('click', () => {
+                                document.getElementById('easterEggOverlay').classList.add('active');
+                            });
+                            
+                            // Jupiter rickrolls
+                            document.querySelector('.planet.jupiter').addEventListener('click', () => {
+                                window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ&autoplay=1', '_blank');
+                            });
+                            
+                            // Saturn opens Dutch learning
+                            document.querySelector('.planet.saturn').addEventListener('click', () => {
+                                window.open('https://www.duolingo.com/course/nl/en/Learn-Dutch', '_blank');
+                            });
+                        }, 100);
+                    }, 2000);
+                }, 1000);
+            }, 800);
+        }
+
+        // Space Helpers
+        function createStars() {
+            const container = document.getElementById('starsContainer');
+            for (let i = 0; i < 300; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // Variety of star sizes
+                const size = Math.random() * 3 + 0.5;
+                star.style.width = size + 'px'; 
+                star.style.height = size + 'px';
+                star.style.left = Math.random() * 100 + '%'; 
+                star.style.top = Math.random() * 200 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = (Math.random() * 3 + 1) + 's';
+                
+                // Some stars are brighter or colored
+                const rand = Math.random();
+                if (rand > 0.95) {
+                    star.classList.add('bright');
+                } else if (rand > 0.9) {
+                    star.classList.add('blue');
+                } else if (rand > 0.85) {
+                    star.classList.add('yellow');
+                }
+                
+                container.appendChild(star);
+            }
+        }
+        
+        function createShootingStars() {
+            const container = document.getElementById('shootingStarsContainer');
+            const star = document.createElement('div');
+            star.className = 'shooting-star';
+            star.style.left = Math.random() * 60 + '%'; 
+            star.style.top = Math.random() * 40 + '%';
+            star.style.transform = 'rotate(' + (Math.random() * 20 + 30) + 'deg)';
+            container.appendChild(star);
+            setTimeout(() => star.remove(), 2500);
+        }
+        
+        function createConstellations() {
+            const container = document.getElementById('constellationsContainer');
+            
+            // Heart constellation (romantic!)
+            const heartConstellation = [
+                {x: 50, y: 20}, {x: 35, y: 10}, {x: 20, y: 20}, {x: 20, y: 40},
+                {x: 50, y: 70}, {x: 80, y: 40}, {x: 80, y: 20}, {x: 65, y: 10}
+            ];
+            createConstellation(container, heartConstellation, 75, 8, [
+                [0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,7], [7,0]
+            ]);
+            
+            // Small dipper-like constellation
+            const dipper = [
+                {x: 0, y: 0}, {x: 30, y: 5}, {x: 60, y: 0}, {x: 90, y: 10},
+                {x: 85, y: 35}, {x: 60, y: 30}, {x: 55, y: 5}
+            ];
+            createConstellation(container, dipper, 20, 45, [
+                [0,1], [1,2], [2,3], [3,4], [4,5], [5,6], [6,2]
+            ]);
+        }
+        
+        function createConstellation(container, stars, offsetX, offsetY, lines) {
+            const constellation = document.createElement('div');
+            constellation.className = 'constellation';
+            constellation.style.left = offsetX + '%';
+            constellation.style.top = offsetY + '%';
+            
+            // Draw lines first (behind stars)
+            lines.forEach(([from, to]) => {
+                const line = document.createElement('div');
+                line.className = 'constellation-line';
+                const x1 = stars[from].x, y1 = stars[from].y;
+                const x2 = stars[to].x, y2 = stars[to].y;
+                const length = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+                const angle = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
+                line.style.width = length + 'px';
+                line.style.left = x1 + 'px';
+                line.style.top = y1 + 'px';
+                line.style.transform = 'rotate(' + angle + 'deg)';
+                constellation.appendChild(line);
+            });
+            
+            // Draw stars
+            stars.forEach(pos => {
+                const star = document.createElement('div');
+                star.className = 'constellation-star';
+                star.style.left = pos.x + 'px';
+                star.style.top = pos.y + 'px';
+                constellation.appendChild(star);
+            });
+            
+            container.appendChild(constellation);
+        }
+
+        function createSpaceHearts() {
+            const container = document.getElementById('spaceHeartsContainer');
+            for (let i = 0; i < 10; i++) {
+                const heart = document.createElement('span');
+                heart.className = 'space-heart';
+                heart.textContent = '❤';
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.fontSize = (Math.random() * 1.5 + 1) + 'rem';
+                heart.style.animationDelay = Math.random() * 8 + 's';
+                heart.style.animationDuration = (Math.random() * 6 + 6) + 's';
+                container.appendChild(heart);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createBackgroundRoses();
+            createFloatingHearts();
+            setTimeout(startPetalFalling, 3500);
+            document.addEventListener('mousemove', handleNoApproach);
+            
+            // Attach click to the groups
+            document.getElementById('yesGroup').addEventListener('click', (e) => {
+                if(document.getElementById('yesGroup').querySelector('text').textContent === 'Yes') handleYesClick();
+            });
+            document.getElementById('noGroup').addEventListener('click', (e) => {
+                if(document.getElementById('noGroup').querySelector('text').textContent === 'Yes') handleYesClick();
+            });
+            
+            // Close easter egg overlay on click
+            document.getElementById('easterEggOverlay').addEventListener('click', () => {
+                document.getElementById('easterEggOverlay').classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
