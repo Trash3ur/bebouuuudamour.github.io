@@ -625,6 +625,112 @@
             100% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); }
         }
 
+        /* --- MOBILE RESPONSIVE STYLES --- */
+        @media screen and (max-width: 768px) {
+            .rose-container {
+                width: 250px;
+                height: 350px;
+                transform: scale(0.85);
+            }
+            
+            .rose-svg-container {
+                width: 200px;
+                height: 320px;
+            }
+            
+            .question {
+                width: 300px;
+                font-size: 2rem;
+                top: -50px;
+            }
+            
+            .love-message {
+                font-size: 1.8rem;
+                white-space: normal;
+                width: 90%;
+                padding: 0 10px;
+            }
+            
+            .easter-egg-overlay .easter-text {
+                font-size: 1.8rem;
+                padding: 0 20px;
+            }
+            
+            .petal-text {
+                font-size: 20px;
+            }
+            
+            /* Larger touch targets for mobile */
+            .interactive-petal {
+                cursor: pointer;
+            }
+            
+            .planet {
+                /* Bigger planets on mobile for easier tapping */
+                transform: scale(1.3);
+            }
+            
+            .planet.mars { top: 12%; right: 8%; }
+            .planet.jupiter { top: 32%; left: 5%; }
+            .planet.saturn { top: 52%; right: 12%; }
+            
+            .rose-container::before {
+                width: 220px;
+                height: 220px;
+            }
+            
+            .space-rocket {
+                transform: translateX(-50%) scale(0.8);
+            }
+        }
+        
+        @media screen and (max-width: 480px) {
+            .rose-container {
+                transform: scale(0.75);
+            }
+            
+            .question {
+                width: 280px;
+                font-size: 1.6rem;
+                top: -40px;
+            }
+            
+            .love-message {
+                font-size: 1.5rem;
+                top: 15%;
+            }
+            
+            .petal-text {
+                font-size: 18px;
+            }
+            
+            .easter-egg-overlay .easter-text {
+                font-size: 1.4rem;
+            }
+        }
+        
+        /* Touch device specific - no hover effects */
+        @media (hover: none) and (pointer: coarse) {
+            .interactive-petal:hover {
+                filter: none;
+            }
+            
+            .planet:hover {
+                transform: translateY(0) scale(1.3) !important;
+                box-shadow: none !important;
+                filter: none;
+            }
+            
+            /* Add active state for touch feedback */
+            .interactive-petal:active {
+                filter: drop-shadow(0 0 15px rgba(255, 100, 100, 0.8)) drop-shadow(0 0 25px rgba(255, 150, 150, 0.5));
+            }
+            
+            .planet:active {
+                filter: brightness(1.3);
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -1094,17 +1200,45 @@
             createBackgroundRoses();
             createFloatingHearts();
             setTimeout(startPetalFalling, 3500);
+            
+            // Detect if touch device
+            const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+            
+            // Handle mouse/touch move for No petal avoidance
             document.addEventListener('mousemove', handleNoApproach);
+            if (isTouchDevice) {
+                document.addEventListener('touchmove', (e) => {
+                    if (e.touches.length > 0) {
+                        const touch = e.touches[0];
+                        handleNoApproach({ clientX: touch.clientX, clientY: touch.clientY });
+                    }
+                }, { passive: true });
+            }
             
-            // Attach click to the groups
-            document.getElementById('yesGroup').addEventListener('click', (e) => {
-                if(document.getElementById('yesGroup').querySelector('text').textContent === 'Yes') handleYesClick();
-            });
-            document.getElementById('noGroup').addEventListener('click', (e) => {
-                if(document.getElementById('noGroup').querySelector('text').textContent === 'Yes') handleYesClick();
-            });
+            // Attach click/tap to the groups
+            const yesGroup = document.getElementById('yesGroup');
+            const noGroup = document.getElementById('noGroup');
             
-            // Close easter egg overlay on click
+            function handlePetalClick(group) {
+                if (group.querySelector('text').textContent === 'Yes') handleYesClick();
+            }
+            
+            yesGroup.addEventListener('click', () => handlePetalClick(yesGroup));
+            noGroup.addEventListener('click', () => handlePetalClick(noGroup));
+            
+            // Touch events for better mobile response
+            if (isTouchDevice) {
+                yesGroup.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    handlePetalClick(yesGroup);
+                });
+                noGroup.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    handlePetalClick(noGroup);
+                });
+            }
+            
+            // Close easter egg overlay on click/tap
             document.getElementById('easterEggOverlay').addEventListener('click', () => {
                 document.getElementById('easterEggOverlay').classList.remove('active');
             });
