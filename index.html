@@ -211,6 +211,16 @@
             position: absolute; top: 25px; left: 50%;
             transform: translateX(-50%);
             border: 3px solid #636e72;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .rocket-window img {
+            width: 90%;
+            height: 90%;
+            object-fit: cover;
+            border-radius: 50%;
         }
         .rocket-fin {
             width: 0; height: 0;
@@ -624,7 +634,7 @@
             
             <div class="actual-rocket">
                 <div class="rocket-body">
-                    <div class="rocket-tip"></div><div class="rocket-window"></div><div class="rocket-stripe"></div>
+                    <div class="rocket-tip"></div><div class="rocket-window"><img src="pinguin.png" alt="Penguin"></div><div class="rocket-stripe"></div>
                     <div class="rocket-fin left"></div><div class="rocket-fin right"></div><div class="rocket-heart">❤</div>
                 </div>
                 <div class="rocket-flames"><div class="flame"></div><div class="flame inner"></div><div class="flame core"></div></div>
@@ -658,7 +668,7 @@
         <div class="space-hearts" id="spaceHeartsContainer"></div>
         <div class="love-message">Hihi ouf je suis HAPPYYYY I love you so much! 💕</div>
         <div class="space-rocket" id="spaceRocket">
-            <div class="rocket-body"><div class="rocket-tip"></div><div class="rocket-window"></div><div class="rocket-stripe"></div><div class="rocket-fin left"></div><div class="rocket-fin right"></div><div class="rocket-heart">❤</div></div>
+            <div class="rocket-body"><div class="rocket-tip"></div><div class="rocket-window"><img src="pinguin.png" alt="Penguin"></div><div class="rocket-stripe"></div><div class="rocket-fin left"></div><div class="rocket-fin right"></div><div class="rocket-heart">❤</div></div>
             <div class="rocket-flames"><div class="flame"></div><div class="flame inner"></div><div class="flame core"></div></div>
         </div>
     </div>
