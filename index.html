@@ -119,10 +119,15 @@
         }
 
         /* Falling Animation */
-        .falling { animation: fallAway 2s ease-in-out forwards; }
+        .falling { animation: fallAway 1.5s ease-in-out forwards; }
         @keyframes fallAway {
-            0% { opacity: 1; }
-            100% { opacity: 0; transform: translateY(400px) rotate(360deg) translateX(150px); }
+            0% { opacity: 1; transform: translateY(0) rotate(0deg) translateX(0); }
+            100% { opacity: 0; transform: translateY(300px) rotate(180deg) translateX(100px); }
+        }
+        
+        /* Rose center fade */
+        #roseCenter, #roseCenterInner {
+            transition: opacity 0.5s ease;
         }
 
         /* Swirl Animation */
@@ -309,6 +314,47 @@
         @keyframes smokeRise {
             0% { transform: translateY(0) scale(0.5); opacity: 0.9; }
             100% { transform: translateY(100px) scale(2); opacity: 0; }
+        }
+
+        /* Transition smoke cloud */
+        .transition-smoke {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            pointer-events: none;
+            z-index: 15;
+        }
+        .transition-smoke.active {
+            animation: smokeExpand 1.5s ease-out forwards;
+        }
+        @keyframes smokeExpand {
+            0% { width: 0; height: 0; opacity: 0; }
+            30% { width: 350px; height: 350px; opacity: 1; }
+            100% { width: 500px; height: 500px; opacity: 0; }
+        }
+        .smoke-puff {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(200,200,200,0.6) 40%, transparent 70%);
+            animation: puffFloat 1.5s ease-out forwards;
+        }
+        @keyframes puffFloat {
+            0% { transform: scale(0.3); opacity: 0; }
+            20% { opacity: 0.9; }
+            100% { transform: scale(2) translateY(-50px); opacity: 0; }
+        }
+        
+        /* Smoother rose fade */
+        .rose-svg-container.fading {
+            animation: roseFadeOut 0.8s ease-out forwards;
+        }
+        @keyframes roseFadeOut {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.9); }
+            100% { opacity: 0; transform: scale(0.7); }
         }
 
         /* --- ENHANCED SPACE SCENE --- */
@@ -601,33 +647,77 @@
                             <stop offset="0%" style="stop-color:#ff7675;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
                         </linearGradient>
+                        <linearGradient id="petalDark" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#d63447;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#8b1a2d;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="petalMid" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e84a5f;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#a52337;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="petalLight" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ff6b7a;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#c0392b;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="centerGradient" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" style="stop-color:#5c1018;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#800e13;stop-opacity:1" />
+                        </radialGradient>
                     </defs>
                     
-                    <path class="stem-path" d="M100,180 Q100,250 100,350" fill="none" stroke="#228b22" stroke-width="8" stroke-linecap="round" />
-                    <path class="leaf-path" d="M100,240 Q130,220 150,230 Q130,250 100,240" fill="#228b22" />
-                    <path class="leaf-path" d="M100,280 Q70,260 50,270 Q70,290 100,280" fill="#228b22" />
+                    <!-- Stem with slight curve -->
+                    <path class="stem-path" d="M100,180 Q95,220 100,260 Q105,300 100,350" fill="none" stroke="#228b22" stroke-width="8" stroke-linecap="round" />
+                    <!-- Leaves with more detail -->
+                    <path class="leaf-path" d="M100,235 Q125,210 155,220 Q140,235 155,250 Q125,255 100,235" fill="#228b22" />
+                    <path class="leaf-path" d="M100,285 Q75,260 45,270 Q60,285 45,300 Q75,305 100,285" fill="#228b22" />
+                    <!-- Leaf veins -->
+                    <path d="M100,235 Q130,230 145,235" fill="none" stroke="#1a6b1a" stroke-width="1" opacity="0.5"/>
+                    <path d="M100,285 Q70,280 55,285" fill="none" stroke="#1a6b1a" stroke-width="1" opacity="0.5"/>
 
                     <g id="flowerHead">
-                        <!-- Yes/No petals at the back -->
+                        <!-- Outermost layer (back petals) - largest, curled outward -->
+                        <path class="petal-path back-petal" fill="url(#petalDark)" d="M100,180 Q60,175 40,140 Q35,100 55,80 Q80,70 95,95 Q100,130 100,180" opacity="0.9"/>
+                        <path class="petal-path back-petal" fill="url(#petalDark)" d="M100,180 Q140,175 160,140 Q165,100 145,80 Q120,70 105,95 Q100,130 100,180" opacity="0.9"/>
+                        <path class="petal-path back-petal" fill="url(#petalDark)" d="M100,180 Q75,190 50,175 Q25,155 30,125 Q45,105 75,115 Q95,135 100,180" opacity="0.85"/>
+                        <path class="petal-path back-petal" fill="url(#petalDark)" d="M100,180 Q125,190 150,175 Q175,155 170,125 Q155,105 125,115 Q105,135 100,180" opacity="0.85"/>
+                        
+                        <!-- Yes/No petals - these stay visible at the end -->
                         <g id="yesGroup" class="interactive-petal" style="pointer-events: none;">
-                            <path class="petal-path" fill="url(#yesGradient)" d="M100,180 C85,175 55,150 50,120 C45,90 65,75 85,85 C95,90 100,110 100,180" />
-                            <text x="70" y="125" class="petal-text" transform="rotate(-15 70 125)" style="opacity: 0;">Yes</text>
+                            <path class="petal-path" fill="url(#yesGradient)" d="M100,180 Q70,170 50,140 Q40,105 60,85 Q85,80 95,105 Q100,140 100,180" />
+                            <text x="68" y="120" class="petal-text" transform="rotate(-20 68 120)" style="opacity: 0;">Yes</text>
                         </g>
 
                         <g id="noGroup" class="interactive-petal" style="pointer-events: none;">
-                            <path class="petal-path" fill="url(#petalGradient)" d="M100,180 C115,175 145,150 150,120 C155,90 135,75 115,85 C105,90 100,110 100,180" />
-                            <text x="130" y="125" class="petal-text" transform="rotate(15 130 125)" style="opacity: 0;">No</text>
+                            <path class="petal-path" fill="url(#petalGradient)" d="M100,180 Q130,170 150,140 Q160,105 140,85 Q115,80 105,105 Q100,140 100,180" />
+                            <text x="132" y="120" class="petal-text" transform="rotate(20 132 120)" style="opacity: 0;">No</text>
                         </g>
 
-                        <!-- Outer petals on top (will fall) -->
-                        <path class="petal-path outer" id="p1" fill="url(#petalGradient)" d="M100,180 C70,180 50,130 80,100 C100,80 120,100 100,180" />
-                        <path class="petal-path outer" id="p2" fill="url(#petalGradient)" d="M100,180 C130,180 150,130 120,100 C100,80 80,100 100,180" />
-                        <path class="petal-path outer" id="p3" fill="url(#petalGradient)" d="M100,180 C60,160 60,100 100,80 C140,100 140,160 100,180" />
-                        <path class="petal-path outer" id="p4" fill="url(#petalGradient)" d="M90,170 C60,120 80,70 100,60 C120,70 140,120 110,170" />
+                        <!-- All falling petals group - will fade out to reveal Yes/No -->
+                        <g id="fallingPetalsGroup">
+                            <!-- Middle layer petals -->
+                            <path class="petal-path outer" id="p5" fill="url(#petalMid)" d="M100,180 Q65,165 55,135 Q50,105 70,95 Q90,92 98,120 Q100,150 100,180" opacity="0.95"/>
+                            <path class="petal-path outer" id="p6" fill="url(#petalMid)" d="M100,180 Q135,165 145,135 Q150,105 130,95 Q110,92 102,120 Q100,150 100,180" opacity="0.95"/>
+                            
+                            <!-- Outer petals that fall -->
+                            <path class="petal-path outer" id="p1" fill="url(#petalLight)" d="M100,180 Q80,172 65,145 Q55,115 72,100 Q92,95 100,125 Q100,155 100,180" />
+                            <path class="petal-path outer" id="p2" fill="url(#petalLight)" d="M100,180 Q120,172 135,145 Q145,115 128,100 Q108,95 100,125 Q100,155 100,180" />
+                            <path class="petal-path outer" id="p3" fill="url(#petalMid)" d="M100,180 Q75,168 68,140 Q62,110 82,102 Q97,100 100,130 Q100,160 100,180" />
+                            <path class="petal-path outer" id="p4" fill="url(#petalMid)" d="M100,180 Q125,168 132,140 Q138,110 118,102 Q103,100 100,130 Q100,160 100,180" />
 
-                        <circle id="roseCenter" cx="100" cy="180" r="0" fill="#800e13">
-                            <animate attributeName="r" from="0" to="15" dur="1s" fill="freeze" />
-                        </circle>
+                            <!-- Inner spiral petals -->
+                            <path class="petal-path outer" id="p7" fill="url(#petalLight)" d="M100,180 Q85,170 80,150 Q78,130 90,125 Q100,125 100,145 Q100,165 100,180" />
+                            <path class="petal-path outer" id="p8" fill="url(#petalLight)" d="M100,180 Q115,170 120,150 Q122,130 110,125 Q100,125 100,145 Q100,165 100,180" />
+                            <path class="petal-path outer" id="p9" fill="url(#petalGradient)" d="M100,180 Q90,172 87,155 Q85,138 95,135 Q102,138 100,155 Q100,170 100,180" />
+                            <path class="petal-path outer" id="p10" fill="url(#petalGradient)" d="M100,180 Q110,172 113,155 Q115,138 105,135 Q98,138 100,155 Q100,170 100,180" />
+                            
+                            <!-- Rose center - spiral bud -->
+                            <ellipse id="roseCenter" cx="100" cy="155" rx="8" ry="12" fill="url(#centerGradient)">
+                                <animate attributeName="ry" from="0" to="12" dur="1s" fill="freeze" />
+                            </ellipse>
+                            <path id="roseCenterInner" d="M96,150 Q100,145 104,150 Q100,158 96,150" fill="#5c1018" opacity="0.8">
+                                <animate attributeName="opacity" from="0" to="0.8" dur="1.2s" fill="freeze" />
+                            </path>
+                        </g>
                     </g>
                 </svg>
             </div>
@@ -640,6 +730,9 @@
                 <div class="rocket-flames"><div class="flame"></div><div class="flame inner"></div><div class="flame core"></div></div>
                 <div class="smoke-container"><div class="smoke"></div><div class="smoke"></div><div class="smoke"></div></div>
             </div>
+            
+            <!-- Transition smoke for rose to rocket -->
+            <div class="transition-smoke" id="transitionSmoke"></div>
         </div>
     </div>
 
@@ -710,19 +803,38 @@
         }
 
         // Logic
+        let petalsFallingDone = false;
+        
         function startPetalFalling() {
-            const petals = [document.getElementById('p4'), document.getElementById('p3'), document.getElementById('p2'), document.getElementById('p1')];
+            // All petals that need to fall (outer to inner)
+            const petals = [
+                document.getElementById('p1'), 
+                document.getElementById('p2'), 
+                document.getElementById('p3'), 
+                document.getElementById('p4'),
+                document.getElementById('p5'),
+                document.getElementById('p6'),
+                document.getElementById('p7'),
+                document.getElementById('p8'),
+                document.getElementById('p9'),
+                document.getElementById('p10')
+            ];
             const question = document.getElementById('question');
+            const roseCenter = document.getElementById('roseCenter');
+            const roseCenterInner = document.getElementById('roseCenterInner');
             
             let delay = 0;
             petals.forEach((petal, index) => {
                 setTimeout(() => {
-                    petal.classList.add('falling');
-                    if (index === 1) question.classList.add('visible');
+                    if (petal) petal.classList.add('falling');
                     
+                    // After all petals have fallen
                     if (index === petals.length - 1) {
                         setTimeout(() => {
-                            document.getElementById('roseCenter').style.opacity = '0';
+                            // Hide the rose center
+                            if (roseCenter) roseCenter.style.opacity = '0';
+                            if (roseCenterInner) roseCenterInner.style.opacity = '0';
+                            
                             const yesGroup = document.getElementById('yesGroup');
                             const noGroup = document.getElementById('noGroup');
                             // Reveal the text on the petals
@@ -731,16 +843,23 @@
                             // Enable pointer events
                             yesGroup.style.pointerEvents = 'auto';
                             noGroup.style.pointerEvents = 'auto';
-                        }, 500);
+                            
+                            // Show question only after everything is ready
+                            question.classList.add('visible');
+                            
+                            // Mark petals as done falling
+                            petalsFallingDone = true;
+                        }, 800);
                     }
                 }, delay);
-                delay += 1000;
+                delay += 400; // Faster interval for more petals
             });
         }
 
         let isSwirling = false;
         function handleNoApproach(e) {
-            if (isSwirling) return;
+            // Don't allow swirl until petals are done falling
+            if (isSwirling || !petalsFallingDone) return;
 
             // Find which group currently holds the "No" text
             const yesGroup = document.getElementById('yesGroup');
@@ -784,47 +903,80 @@
             }
         }
 
+        function createTransitionSmoke() {
+            const smokeContainer = document.getElementById('transitionSmoke');
+            smokeContainer.innerHTML = '';
+            
+            // Create multiple smoke puffs
+            for (let i = 0; i < 12; i++) {
+                const puff = document.createElement('div');
+                puff.className = 'smoke-puff';
+                const size = 40 + Math.random() * 60;
+                puff.style.width = size + 'px';
+                puff.style.height = size + 'px';
+                puff.style.left = (50 + (Math.random() - 0.5) * 100) + '%';
+                puff.style.top = (50 + (Math.random() - 0.5) * 100) + '%';
+                puff.style.animationDelay = (Math.random() * 0.3) + 's';
+                smokeContainer.appendChild(puff);
+            }
+            
+            smokeContainer.classList.add('active');
+        }
+        
         function handleYesClick() {
             const roseContainer = document.getElementById('roseContainer');
             const roseField = document.querySelector('.rose-field');
+            const roseSvg = document.getElementById('roseSvgContainer');
+            const question = document.getElementById('question');
             
-            roseContainer.classList.add('pre-launch');
+            // Hide question
+            question.classList.remove('visible');
+            
+            // Start smoke and fade rose
+            createTransitionSmoke();
+            roseSvg.classList.add('fading');
+            
             setTimeout(() => {
-                roseContainer.classList.remove('pre-launch');
                 roseContainer.classList.add('rocket-mode');
-                roseContainer.classList.add('pre-launch');
+                
+                // Small vibration before launch
                 setTimeout(() => {
-                    roseContainer.classList.remove('pre-launch');
-                    roseContainer.classList.add('takeoff');
+                    roseContainer.classList.add('pre-launch');
+                    
                     setTimeout(() => {
-                        roseField.style.display = 'none';
-                        const spaceScene = document.getElementById('spaceScene');
-                        createStars();
-                        createConstellations();
-                        setInterval(createShootingStars, 2500);
-                        createShootingStars(); // Initial one
-                        createSpaceHearts();
-                        spaceScene.classList.add('active');
+                        roseContainer.classList.remove('pre-launch');
+                        roseContainer.classList.add('takeoff');
                         
-                        // Attach planet listeners after space scene is active
                         setTimeout(() => {
-                            // Mars shows the image easter egg
-                            document.querySelector('.planet.mars').addEventListener('click', () => {
-                                document.getElementById('easterEggOverlay').classList.add('active');
-                            });
+                            roseField.style.display = 'none';
+                            const spaceScene = document.getElementById('spaceScene');
+                            createStars();
+                            createConstellations();
+                            setInterval(createShootingStars, 2500);
+                            createShootingStars(); // Initial one
+                            createSpaceHearts();
+                            spaceScene.classList.add('active');
                             
-                            // Jupiter rickrolls
-                            document.querySelector('.planet.jupiter').addEventListener('click', () => {
-                                window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ&autoplay=1', '_blank');
-                            });
-                            
-                            // Saturn opens Dutch learning
-                            document.querySelector('.planet.saturn').addEventListener('click', () => {
-                                window.open('https://www.duolingo.com/course/nl/en/Learn-Dutch', '_blank');
-                            });
-                        }, 100);
-                    }, 2000);
-                }, 1000);
+                            // Attach planet listeners after space scene is active
+                            setTimeout(() => {
+                                // Mars shows the image easter egg
+                                document.querySelector('.planet.mars').addEventListener('click', () => {
+                                    document.getElementById('easterEggOverlay').classList.add('active');
+                                });
+                                
+                                // Jupiter rickrolls
+                                document.querySelector('.planet.jupiter').addEventListener('click', () => {
+                                    window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ&autoplay=1', '_blank');
+                                });
+                                
+                                // Saturn opens Dutch learning
+                                document.querySelector('.planet.saturn').addEventListener('click', () => {
+                                    window.open('https://www.duolingo.com/course/nl/en/Learn-Dutch', '_blank');
+                                });
+                            }, 100);
+                        }, 2000);
+                    }, 1500);
+                }, 800);
             }, 800);
         }
 
